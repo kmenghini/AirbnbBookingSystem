@@ -1,12 +1,11 @@
 'use strict';
 
-const axios = require('axios');
-const express = require('express');
 const bodyParser = require('body-parser');
 var cassandra = require('cassandra-driver');
+const express = require('express');
 var models = require('express-cassandra');
-var db = require('./db/index.js');
 const moment = require('moment');
+var db = require('./db/index.js');
 
 // Constants
 const PORT = 8080;
@@ -33,6 +32,16 @@ app.get('/inventory/:listingId', (req, res) => {
   var listingId = req.params.listingId;
   var startTime = moment().valueOf();
   db.getListingDetails(listingId, (data) => {
+    res.status(200).json(data[0]);    
+    var endTime = moment().valueOf();
+    console.log('time for get request for listing details:', (endTime - startTime), 'ms');
+  });
+});
+
+app.get('/hostId/:listingId', (req, res) => {
+  var listingId = req.params.listingId;
+  var startTime = moment().valueOf();
+  db.getHostIdOfListing(listingId, (data) => {
     res.status(200).json(data[0]);    
     var endTime = moment().valueOf();
     console.log('time for get request for listing details:', (endTime - startTime), 'ms');

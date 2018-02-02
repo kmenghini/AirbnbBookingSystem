@@ -14,6 +14,15 @@ module.exports = {
         callback(res.rows);
       }
     });
+  },
+  getHostIdOfListing: (listingId, callback) => {
+    client.execute('SELECT hostId FROM listings WHERE id = ?;', [listingId], (err, res) => {
+      if (err) {
+        callback(err);
+      } else {
+        callback(res.rows);
+      }
+    });
   }
 }
 
