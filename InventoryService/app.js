@@ -5,13 +5,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 var cassandra = require('cassandra-driver');
 var models = require('express-cassandra');
-
-
-var client = new cassandra.Client({contactPoints: ['127.0.0.1'], keyspace: 'airbnb'});
-client.connect(function(err, result) {
-    console.log('Cassandra Connected')
-});
-
+var db = require('./db/index.js');
+const moment = require('moment');
 
 // Constants
 const PORT = 8080;
@@ -29,26 +24,21 @@ app.get('/', (req, res) => {
 app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
 
-
 //uncomment to create more data
 //create fake data to txt files, argument is number of users
 //var dataGen = require('./db/dataGen.js')
 //dataGen.createUsers(1000000);
 
+app.get('/inventory/:listingId', (req, res) => {
+  var listingId = req.params.listingId;
+  var startTime = moment().valueOf();
+  db.getListingDetails(listingId, (data) => {
+    res.status(200).json(data[0]);    
+    var endTime = moment().valueOf();
+    console.log('time for get request for listing details:', (endTime - startTime), 'ms');
+  });
+});
 
-// client.execute("SELECT lastname, age, city, email, firstname FROM users WHERE lastname='Jones'", function (err, result) {
-//   if (!err){
-//       if ( result.rows.length > 0 ) {
-//           var user = result.rows[0];
-//           console.log("name = %s, age = %d", user.firstname, user.age);
-//       } else {
-//           console.log("No results");
-//       }
-//   }
-
-//   // Run next function in series
-//   // callback(err, null);
-// });
 
 // models.setDirectory( __dirname + '/models').bind(
 //   {
