@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
@@ -13,7 +13,6 @@
   "author": "Kaitlyn Menghini",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.17.1",
     "cassandra-driver": "^3.3.0",
     "express": "^4.16.1",
     "express-cassandra": "^2.1.1",
