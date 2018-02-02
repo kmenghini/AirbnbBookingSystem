@@ -28,6 +28,11 @@ console.log(`Running on http://${HOST}:${PORT}`);
 //var dataGen = require('./db/dataGen.js')
 //dataGen.createUsers(1000000);
 
+//uncomment to parse listings table data for listings_by_host table
+//var listingsByHostFile = require('./db/generateListingsByHost.js');
+//var fileNum = 1; //1 to 20
+//listingsByHostFile.generate(fileNum);
+
 app.get('/inventory/:listingId', (req, res) => {
   var listingId = req.params.listingId;
   var startTime = moment().valueOf();
@@ -44,7 +49,7 @@ app.get('/hostId/:listingId', (req, res) => {
   db.getHostIdOfListing(listingId, (data) => {
     res.status(200).json(data[0]);    
     var endTime = moment().valueOf();
-    console.log('time for get request for listing details:', (endTime - startTime), 'ms');
+    console.log('time for get request for hostId:', (endTime - startTime), 'ms');
   });
 });
 

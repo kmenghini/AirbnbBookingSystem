@@ -20,7 +20,13 @@ create table bookings (
   listingId uuidd
 );
 
+create table listings_by_host (
+  hostId uuid PRIMARY KEY,
+  listingId uuid
+);
 
-copy users from '/Users/kmenghini/AirbnbInventoryService/data/users1.txt' with delimiter=',';
-copy bookings from '/Users/kmenghini/AirbnbInventoryService/data/bookings1.txt' with delimiter=',';
-copy listings from '/Users/kmenghini/AirbnbInventoryService/data/listings1.txt' with delimiter=',';
+copy users from '/Users/kmenghini/AirbnbData/users1.txt' with delimiter=',';
+copy bookings from '/Users/kmenghini/AirbnbData/bookings1.txt' with delimiter=',';
+copy listings from '/Users/kmenghini/AirbnbData/listings1.txt' with delimiter=',';
+
+copy listings_by_host from '/Users/kmenghini/AirbnbData/listings1byhost.txt' with delimiter=',';
