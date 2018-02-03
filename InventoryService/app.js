@@ -3,9 +3,10 @@
 const bodyParser = require('body-parser');
 var cassandra = require('cassandra-driver');
 const express = require('express');
-var models = require('express-cassandra');
+// var models = require('express-cassandra');
 const moment = require('moment');
-var db = require('./db/index.js');
+var dbCassandra = require('./db/cassandra/index.js');
+var dbPostgres = require('./db/postgres/index.js');
 
 // Constants
 const PORT = 8080;
@@ -33,25 +34,58 @@ console.log(`Running on http://${HOST}:${PORT}`);
 //var fileNum = 1; //1 to 20
 //listingsByHostFile.generate(fileNum);
 
+//queries cassandradb to get listing details by listingId
 app.get('/inventory/:listingId', (req, res) => {
   var listingId = req.params.listingId;
   var startTime = moment().valueOf();
-  db.getListingDetails(listingId, (data) => {
+  dbCassandra.getListingDetails(listingId, (data) => {
     res.status(200).json(data[0]);    
     var endTime = moment().valueOf();
     console.log('time for get request for listing details:', (endTime - startTime), 'ms');
   });
 });
 
-app.get('/hostId/:listingId', (req, res) => {
-  var listingId = req.params.listingId;
+//queries cassandra db to get hostId by listingId
+var getHostId = (listingId, callback) => {
   var startTime = moment().valueOf();
-  db.getHostIdOfListing(listingId, (data) => {
-    res.status(200).json(data[0]);    
+  dbCassandra.getHostIdOfListing(listingId, (data) => {
+    var result = JSON.stringify(data[0].hostid);
     var endTime = moment().valueOf();
-    console.log('time for get request for hostId:', (endTime - startTime), 'ms');
+    console.log('time to find hostId:', (endTime - startTime), 'ms');
+    callback(result);
   });
-});
+}
+getHostId('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('getHostId', data));
+
+//increments listings count by listingId
+var incListingsCount = (listingId, callback) => {
+  var startTime = moment().valueOf();
+  dbPostgres.incrementListingsCount(listingId, (err, data) => {
+    if (err) {
+      console.log('error! ' + err);
+    } else {
+      callback('insert successful!');
+    }
+    var endTime = moment().valueOf();
+    console.log('time to increment listings count:', (endTime - startTime), 'ms');
+  })
+}
+incListingsCount('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('incListingsCount', data));
+
+
+// var processBooking = (booking) => {
+//   var date = booking.book_time;
+//   var listingId = booking.listing_id;
+//   var hostId = getHostId(listingId);
+
+// };
+
+// var input = {
+//   book_time: '2018-01-23',
+//   listing_id: '124d1241-07c6-11e8-867a-5db29d2915ec'
+// }
+// processBooking(input);
+
 
 
 // models.setDirectory( __dirname + '/models').bind(
