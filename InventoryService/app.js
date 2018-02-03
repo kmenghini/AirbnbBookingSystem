@@ -72,6 +72,21 @@ var incListingsCount = (listingId, callback) => {
 }
 incListingsCount('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('incListingsCount', data));
 
+//increments hosts count by host id and keeps track of most recent booking
+var incHostsCount = (hostId, date, callback) => {
+  var startTime = moment().valueOf();
+  dbPostgres.incrementHostsCount(hostId, date, (err, data) => {
+    if (err) {
+      console.log('error! ' + err);
+    } else {
+      callback('insert successful!');
+    }
+    var endTime = moment().valueOf();
+    console.log('time to increment hosts count:', (endTime - startTime), 'ms');
+  })
+}
+incHostsCount('316c0f95-44f8-475d-b165-03f528c8a127', '2018-03-24', data => console.log('incHostsCount', data));
+
 
 // var processBooking = (booking) => {
 //   var date = booking.book_time;

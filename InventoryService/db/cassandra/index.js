@@ -24,15 +24,6 @@ module.exports = {
       }
     });
   },
-  incrementListingCount: (listingId, callback) => {
-    client.execute('UPDATE listings_count SET count = count + 1 WHERE listingId=?;', [listingId], (err, res) => {
-      if (err) {
-        callback(err);
-      } else {
-        callback(res.rows);
-      }
-    })
-  },
   promoteHostToSuperhost: (hostId, callback) => {
     client.execute('UPDATE users SET superbool=true WHERE id=? if exists;', [hostId], (err, res) => {
       if (err) {

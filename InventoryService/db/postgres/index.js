@@ -17,6 +17,16 @@ module.exports = {
         callback(null, res);
       }
     })
+  },
+  incrementHostsCount: (hostId, date, callback) => {
+    var queryString = 'INSERT INTO hosts_count (hostid, count, newestbookingdate) VALUES ($1, 1, $2) ON CONFLICT (hostid) DO UPDATE SET count = hosts_count.count + 1, newestbookingdate = ($2)';
+    client.query(queryString, [hostId, date], (err, res) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, res);
+      }
+    })
   } 
 
 }
