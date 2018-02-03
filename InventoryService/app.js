@@ -49,55 +49,60 @@ app.get('/inventory/:listingId', (req, res) => {
 var getHostId = (listingId, callback) => {
   var startTime = moment().valueOf();
   dbCassandra.getHostIdOfListing(listingId, (data) => {
-    var result = JSON.stringify(data[0].hostid);
+    var result = (data[0].hostid).toString();
     var endTime = moment().valueOf();
     console.log('time to find hostId:', (endTime - startTime), 'ms');
     callback(result);
   });
 }
-getHostId('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('getHostId', data));
+// getHostId('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('getHostId', data));
 
 //increments listings count by listingId
-var incListingsCount = (listingId, callback) => {
+var incListingsCount = (listingId) => {
   var startTime = moment().valueOf();
   dbPostgres.incrementListingsCount(listingId, (err, data) => {
     if (err) {
       console.log('error! ' + err);
     } else {
-      callback('insert successful!');
+      console.log('listing insert successful!');
     }
     var endTime = moment().valueOf();
     console.log('time to increment listings count:', (endTime - startTime), 'ms');
   })
 }
-incListingsCount('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('incListingsCount', data));
+// incListingsCount('ea6375d2-51b0-4bca-b6a7-a9a73a98a063');
 
 //increments hosts count by host id and keeps track of most recent booking
-var incHostsCount = (hostId, date, callback) => {
+var incHostsCount = (hostId, date) => {
   var startTime = moment().valueOf();
   dbPostgres.incrementHostsCount(hostId, date, (err, data) => {
     if (err) {
       console.log('error! ' + err);
     } else {
-      callback('insert successful!');
+      console.log('host insert successful!');
     }
     var endTime = moment().valueOf();
     console.log('time to increment hosts count:', (endTime - startTime), 'ms');
   })
 }
-incHostsCount('316c0f95-44f8-475d-b165-03f528c8a127', '2018-03-24', data => console.log('incHostsCount', data));
+// incHostsCount('316c0f95-44f8-475d-b165-03f528c8a127', '2018-03-24');
 
-
-// var processBooking = (booking) => {
-//   var date = booking.book_time;
-//   var listingId = booking.listing_id;
-//   var hostId = getHostId(listingId);
-
-// };
+//run this on each booking object received {book_time:  , listing_id: }
+//[TODO]: need to parse generated booking data to create these (csv to json)
+  //loop through all those objects and run this function on each one
+var processBooking = (booking) => {
+  var date = booking.book_time;
+  var listingId = booking.listing_id;
+  incListingsCount(listingId);
+  getHostId(listingId, (hostId) => {
+    console.log('processing hostId:',hostId)
+    incHostsCount(hostId, date);
+  });
+};
 
 // var input = {
-//   book_time: '2018-01-23',
-//   listing_id: '124d1241-07c6-11e8-867a-5db29d2915ec'
+//   book_time: '2018-02-02',
+//   listing_id: '3d9eaf4d-abe3-4706-83e0-f50e17149d09'
 // }
 // processBooking(input);
 
