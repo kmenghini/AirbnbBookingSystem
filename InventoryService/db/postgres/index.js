@@ -47,7 +47,16 @@ module.exports = {
         callback(null, res.rows);
       }
     });
+  },
+  addSuperhostToTable: (id, date, callback) => {
+    var queryString = 'INSERT INTO superhosts (hostid, superdate) VALUES ($1, $2) ON CONFLICT DO NOTHING;';
+    client.query(queryString, [id, date], (err, res) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, res);
+      }
+    });
   }
-
 }
 

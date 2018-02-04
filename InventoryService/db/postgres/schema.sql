@@ -16,4 +16,9 @@ create table hosts_count (
   newestBookingDate date
 );
 
+create table superhosts (
+  hostId uuid PRIMARY KEY NOT NULL UNIQUE,
+  superDate date
+);
+
 
