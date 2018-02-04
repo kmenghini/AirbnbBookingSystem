@@ -26,8 +26,28 @@ module.exports = {
       } else {
         callback(null, res);
       }
-    })
-  } 
+    });
+  },
+  queryForTopListings: (callback) => {
+    var queryString = 'SELECT * FROM listings_count ORDER BY count DESC LIMIT 5;';
+    client.query(queryString, (err, res) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, res.rows);
+      }
+    });
+  },
+  queryForSuperhosts: (callback) => {
+    var queryString = 'SELECT hostid, newestbookingdate FROM hosts_count WHERE count >= 5;';
+    client.query(queryString, (err, res) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, res.rows);
+      }
+    });
+  }
 
 }
 
