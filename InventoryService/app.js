@@ -134,7 +134,7 @@ var newSuperhosts = () => {
           if (data.rowCount) {
             dbCassandra.getListingIdsOfHost(hostid, (listingIds) => {
               dbCassandra.promoteHostToSuperhost(hostid, listingIds, (data) => {
-                console.log('updating superbools in cassandra!', data);
+                console.log('updated superbool in cassandra for', data);
               })
             });
           }
@@ -144,7 +144,7 @@ var newSuperhosts = () => {
   });
 };
 //put this in a cron job to check for new superhosts regularly
-newSuperhosts();
+// newSuperhosts();
 
 //get top listings (top 5)
 var getTopListings = (callback) => {
