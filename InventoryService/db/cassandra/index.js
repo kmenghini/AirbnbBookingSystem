@@ -47,7 +47,10 @@ module.exports = {
       if (err) {
         callback(err);
       } else {
+        console.log(res.rows);
         var ids = res.rows.map(id => (id.listingid))
+        console.log('ids array')
+        console.log(ids)
         callback(ids);
       }
     });

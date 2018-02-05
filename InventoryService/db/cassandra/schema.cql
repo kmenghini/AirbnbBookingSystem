@@ -15,18 +15,13 @@ create table listings (
   superBool boolean
 );
 
-create table bookings (
-  date timestamp PRIMARY KEY,
-  listingId uuidd
-);
 
 create table listings_by_host (
-  hostId uuid PRIMARY KEY,
-  listingId uuid
+  hostId uuid,
+  listingId uuid,
+  PRIMARY KEY (hostId, listingId)
 );
 
 copy users from '/Users/kmenghini/AirbnbData/users1.txt' with delimiter=',';
-copy bookings from '/Users/kmenghini/AirbnbData/bookings1.txt' with delimiter=',';
 copy listings from '/Users/kmenghini/AirbnbData/listings1.txt' with delimiter=',';
-
 copy listings_by_host from '/Users/kmenghini/AirbnbData/listings1byhost.txt' with delimiter=',';

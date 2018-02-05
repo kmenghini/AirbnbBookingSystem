@@ -9,3 +9,4 @@ In connection with the other microservices of the system, its main input and out
 -Keep track of the top listings of the system using input from the Booking Microservice
 
 -Keeps an updated list of any superhosts along with the date that the host became a superhost
+

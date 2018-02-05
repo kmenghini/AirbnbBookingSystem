@@ -104,8 +104,8 @@ var processBooking = (booking) => {
   });
 };
 // var input = {
-//   book_time: '2018-02-02',
-//   listing_id: '3d9eaf4d-abe3-4706-83e0-f50e17149d09'
+//   book_time: '2018-02-04',
+//   listing_id: '73eb50d7-3fc6-4d05-8cf7-fbaa63779e5b'
 // }
 // processBooking(input);
 
@@ -144,7 +144,7 @@ var newSuperhosts = () => {
   });
 };
 //put this in a cron job to check for new superhosts regularly
-// newSuperhosts();
+newSuperhosts();
 
 //get top listings (top 5)
 var getTopListings = (callback) => {
