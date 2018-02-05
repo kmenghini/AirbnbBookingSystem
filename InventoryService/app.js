@@ -143,8 +143,8 @@ var newSuperhosts = () => {
     });
   });
 };
-//put this in a cron job
-newSuperhosts();
+//put this in a cron job to check for new superhosts regularly
+// newSuperhosts();
 
 //get top listings (top 5)
 var getTopListings = (callback) => {
