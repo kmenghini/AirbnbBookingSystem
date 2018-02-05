@@ -19,6 +19,7 @@
     "express-cassandra": "^2.1.1",
     "faker": "^4.1.0",
     "moment": "^2.20.1",
+    "node-cron": "^1.2.1",
     "pg": "^7.4.1",
     "uuid": "^3.2.1"
   },

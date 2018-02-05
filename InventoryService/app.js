@@ -7,6 +7,8 @@ const express = require('express');
 const moment = require('moment');
 var dbCassandra = require('./db/cassandra/index.js');
 var dbPostgres = require('./db/postgres/index.js');
+var cron = require('node-cron');
+
 
 // Constants
 const PORT = 8080;
@@ -142,8 +144,9 @@ var newSuperhosts = () => {
     });
   });
 };
-//put this in a cron job to check for new superhosts regularly
-//newSuperhosts();
+//in a cron job to check for new superhosts twice a day
+cron.schedule('00 2,14 * * *', newSuperhosts);
+
 
 //get top listings (top 5)
 var getTopListings = (callback) => {
@@ -183,8 +186,8 @@ var newTopListings = () => {
     }
   });
 }
-//put this in cron job to get top listings regularly
-//newTopListings();
+//in cron job to get top listings twice a day
+cron.schedule('30 2,14 * * *', newTopListings);
 
 
 
