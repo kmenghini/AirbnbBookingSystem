@@ -121,6 +121,7 @@ var getSuperhosts = (callback) => {
 }
 
 //updates superhosts in tables: pg.superhosts, cass.users, cass.listings
+//TODO: test that this works when a new superhost owns multiple listings
 var newSuperhosts = () => {
   getSuperhosts((data) => {
     data.forEach(superhost => {
@@ -131,8 +132,11 @@ var newSuperhosts = () => {
           console.log('superhost error! ' + err);
         } else {
           if (data.rowCount) {
-            console.log('update other tables in cassandra')
-            //update superBool in dbCassandra (users and listings tables)
+            dbCassandra.getListingIdsOfHost(hostid, (listingIds) => {
+              dbCassandra.promoteHostToSuperhost(hostid, listingIds, (data) => {
+                console.log('updating superbools in cassandra!', data);
+              })
+            });
           }
         }
       });
@@ -141,9 +145,6 @@ var newSuperhosts = () => {
 };
 //put this in a cron job
 newSuperhosts();
-//TODO: add each superhost id and newestbookingdate to superhosts table in postgres
-
-
 
 //get top listings (top 5)
 var getTopListings = (callback) => {
@@ -155,11 +156,11 @@ var getTopListings = (callback) => {
     }
   });
 }
-getTopListings((data) => {
-  data.forEach(topListing => {
-    console.log('top listing:', topListing.listingid, topListing.count)
-  })
-})
+// getTopListings((data) => {
+//   data.forEach(topListing => {
+//     console.log('top listing:', topListing.listingid, topListing.count)
+//   })
+// })
 //TODO LATER: add top listings to top listings table (in cache?)
 
 

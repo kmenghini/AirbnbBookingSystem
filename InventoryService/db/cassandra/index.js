@@ -24,7 +24,7 @@ module.exports = {
       }
     });
   },
-  promoteHostToSuperhost: (hostId, callback) => {
+  promoteHostToSuperhost: (hostId, listingIdArr, callback) => {
     client.execute('UPDATE users SET superbool=true WHERE id=? if exists;', [hostId], (err, res) => {
       if (err) {
         callback(err);
@@ -32,16 +32,23 @@ module.exports = {
         callback(res.rows);
       }
     });
-    //option1: create a (linked) listingsByHostId table where hostid is the primary key - both tables must be kept updated constantly
-    //option2: when I get the booking event it has the listingId, store that in the hosts_count table as well in an array
-      //BUT even if you loop through that array it doesn't necessarily get ALL of that user's listings, only ones that have been booked
-    //option 3: have separate table that has each user and an array of all their listingids - how would you create this
-    //YOU'LL GET AN ERROR HERE....
-    client.execute('UPDATE listings SET superbool=true WHERE hostid=? if exists;', [hostId], (err, res) => {
+    listingIdArr.forEach(listingId => {
+      client.execute('UPDATE listings SET superbool=true WHERE id=? if exists;', [listingId], (err, res) => {
+        if (err) {
+          callback(err);
+        } else {
+          callback(res.rows);
+        }
+      });
+    })
+  },
+  getListingIdsOfHost: (hostId, callback) => {
+    client.execute('SELECT listingid FROM listings_by_host WHERE hostid=?;', [hostId], (err, res) => {
       if (err) {
         callback(err);
       } else {
-        callback(res.rows);
+        var ids = res.rows.map(id => (id.listingid))
+        callback(ids);
       }
     });
   }
