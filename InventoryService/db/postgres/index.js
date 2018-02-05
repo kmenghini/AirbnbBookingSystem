@@ -57,6 +57,26 @@ module.exports = {
         callback(null, res);
       }
     });
-  }
+  },
+  clearPopularListingsTable: (callback) => {
+    var queryString = 'TRUNCATE popular_listing_details;';
+    client.query(queryString, (err, res) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, res);
+      }
+    });
+  },
+  addPopularListing: (listingId, name, hostId, superBool, callback) => {
+    var queryString = 'INSERT INTO popular_listing_details (listingid, name, hostid, superbool) VALUES ($1, $2, $3, $4);';
+    client.query(queryString, [listingId, name, hostId, superBool], (err, res) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, res);
+      }
+    });
+  } 
 }
 

@@ -21,4 +21,10 @@ create table superhosts (
   superDate date
 );
 
+create table popular_listing_details (
+  listingId uuid PRIMARY KEY NOT NULL UNIQUE,
+  name text,
+  hostId uuid,
+  superBool boolean
+);
 

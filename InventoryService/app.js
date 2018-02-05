@@ -121,7 +121,6 @@ var getSuperhosts = (callback) => {
 }
 
 //updates superhosts in tables: pg.superhosts, cass.users, cass.listings
-//TODO: test that this works when a new superhost owns multiple listings
 var newSuperhosts = () => {
   getSuperhosts((data) => {
     data.forEach(superhost => {
@@ -144,7 +143,7 @@ var newSuperhosts = () => {
   });
 };
 //put this in a cron job to check for new superhosts regularly
-// newSuperhosts();
+//newSuperhosts();
 
 //get top listings (top 5)
 var getTopListings = (callback) => {
@@ -156,14 +155,36 @@ var getTopListings = (callback) => {
     }
   });
 }
-// getTopListings((data) => {
-//   data.forEach(topListing => {
-//     console.log('top listing:', topListing.listingid, topListing.count)
-//   })
-// })
-//TODO LATER: add top listings to top listings table (in cache?)
 
-
+var newTopListings = () => {
+  dbPostgres.clearPopularListingsTable((err, data) => {
+    if (err) {
+      console.log('clear top listings error' + err);
+    } else {
+      getTopListings((topListings) => {
+        topListings.forEach(topListing => {
+          var listingId = topListing.listingid;
+          dbCassandra.getListingDetails(listingId, (data) => {
+            var listingId = data[0].id.toString();
+            var name = data[0].name;
+            var hostId = data[0].hostid.toString();
+            var superBool = data[0].superbool;
+            //move this table to redis later
+            dbPostgres.addPopularListing(listingId, name, hostId, superBool, (err, data) => {
+              if (err) {
+                console.log('add top listing error' + err);
+              } else {
+                console.log('popular listing added!');
+              }
+            })
+          });
+        })
+      })
+    }
+  });
+}
+//put this in cron job to get top listings regularly
+//newTopListings();
 
 
 
