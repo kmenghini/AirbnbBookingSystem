@@ -1,0 +1,22 @@
+config:
+  target: "http://localhost:8080"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      name: "Warm up"
+    - duration: 120
+      arrivalRate: 5
+      rampTo: 50
+      name: "Ramp up"
+    - duration: 600
+      arrivalRate: 50
+      name: "Final high load phase"
+  payload:
+    path: "listingsbyhosttest.csv"
+    fields:
+      - "listingid"
+scenarios:
+  - name: "Get listing info"
+    flow:
+    - get:
+        url: "/inventory/{{ listingid }}"

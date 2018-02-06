@@ -42,24 +42,24 @@ listingsByHostFile.generate(fileNum);
 // var bookingsToPg = require('./db/loadBookingsToPostgres.js');
 // bookingsToPg.loadBookings(1);
 
+//to test timing of any function, wrap with this:
+// var startTime = moment().valueOf();
+// var endTime = moment().valueOf();
+// console.log('time to increment hosts count:', (endTime - startTime), 'ms');
+
+
 //queries cassandradb to get listing details by listingId
 app.get('/inventory/:listingId', (req, res) => {
   var listingId = req.params.listingId;
-  var startTime = moment().valueOf();
   dbCassandra.getListingDetails(listingId, (data) => {
     res.status(200).json(data[0]);    
-    var endTime = moment().valueOf();
-    console.log('time for get request for listing details:', (endTime - startTime), 'ms');
   });
 });
 
 //queries cassandra db to get hostId by listingId
 var getHostId = (listingId, callback) => {
-  // var startTime = moment().valueOf();
   dbCassandra.getHostIdOfListing(listingId, (data) => {
     var result = (data[0].hostid).toString();
-    // var endTime = moment().valueOf();
-    // console.log('time to find hostId:', (endTime - startTime), 'ms');
     callback(result);
   });
 }
@@ -67,30 +67,24 @@ var getHostId = (listingId, callback) => {
 
 //increments listings count by listingId
 var incListingsCount = (listingId) => {
-  // var startTime = moment().valueOf();
   dbPostgres.incrementListingsCount(listingId, (err, data) => {
     if (err) {
       console.log('error! ' + err);
     } else {
       console.log('listing insert successful!');
     }
-    // var endTime = moment().valueOf();
-    // console.log('time to increment listings count:', (endTime - startTime), 'ms');
   })
 }
 // incListingsCount('ea6375d2-51b0-4bca-b6a7-a9a73a98a063');
 
 //increments hosts count by host id and keeps track of most recent booking
 var incHostsCount = (hostId, date) => {
-  // var startTime = moment().valueOf();
   dbPostgres.incrementHostsCount(hostId, date, (err, data) => {
     if (err) {
       console.log('error! ' + err);
     } else {
       console.log('host insert successful!');
     }
-    // var endTime = moment().valueOf();
-    // console.log('time to increment hosts count:', (endTime - startTime), 'ms');
   })
 }
 // incHostsCount('316c0f95-44f8-475d-b165-03f528c8a127', '2018-03-24');
