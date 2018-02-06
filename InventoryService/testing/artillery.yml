@@ -2,14 +2,33 @@ config:
   target: "http://localhost:8080"
   phases:
     - duration: 60
-      arrivalRate: 5
+      arrivalRate: 55
       name: "Warm up"
-    - duration: 120
-      arrivalRate: 5
-      rampTo: 50
-      name: "Ramp up"
-    - duration: 600
+    - duration: 60
       arrivalRate: 50
+      rampTo: 100
+      name: "Ramp up"
+    - duration: 60
+      arrivalRate: 100
+      rampTo: 250
+    - duration: 60
+      arrivalRate: 150
+      rampTo: 400
+    - duration: 60
+      arrivalRate: 200
+      rampTo: 600
+    - duration: 60
+      arrivalRate: 220
+      rampTo: 800
+    - duration: 60
+      arrivalRate: 250
+      rampTo: 1000
+    - duration: 60
+      arrivalRate: 275
+      rampTo: 1250
+    - duration: 60
+      arrivalRate: 285
+      rampTo: 1450
       name: "Final high load phase"
   payload:
     path: "listingsbyhosttest.csv"

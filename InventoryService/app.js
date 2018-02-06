@@ -1,3 +1,5 @@
+require('newrelic');
+
 'use strict';
 
 const bodyParser = require('body-parser');
@@ -50,8 +52,7 @@ listingsByHostFile.generate(fileNum);
 
 //queries cassandradb to get listing details by listingId
 app.get('/inventory/:listingId', (req, res) => {
-  var listingId = req.params.listingId;
-  dbCassandra.getListingDetails(listingId, (data) => {
+  dbCassandra.getListingDetails(req.params.listingId, (data) => {
     res.status(200).json(data[0]);    
   });
 });
