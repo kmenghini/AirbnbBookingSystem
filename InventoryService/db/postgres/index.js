@@ -77,6 +77,16 @@ module.exports = {
         callback(null, res);
       }
     });
+  },
+  getPopularListingDetails: (listingId, callback) => {
+    var queryString = 'SELECT * from popular_listing_details WHERE listingid=$1';
+    client.query(queryString, [listingId], (err, res) => {
+      if (err) {
+        callback(err, null);
+      } else {
+        callback(null, res.rows);
+      }
+    });
   } 
 }
 
