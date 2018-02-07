@@ -11,6 +11,7 @@ var dbCassandra = require('./db/cassandra/index.js');
 var dbPostgres = require('./db/postgres/index.js');
 var cron = require('node-cron');
 
+var sqs = require('./sqs.js');
 
 // Constants
 const PORT = 8080;
@@ -52,9 +53,24 @@ listingsByHostFile.generate(fileNum);
 
 //queries cassandradb to get listing details by listingId
 app.get('/inventory/:listingId', (req, res) => {
+  // var startTime = moment().valueOf();
   dbCassandra.getListingDetails(req.params.listingId, (data) => {
-    res.status(200).json(data[0]);    
+    // console.log('got from cassandra')
+    res.status(200).json(data[0]);
   });
+  // dbPostgres.getPopularListingDetails(req.params.listingId, (err, data) => {
+  //   if (err) {
+  //     console.log('error!', err);
+  //   } else {
+  //     if (data.length > 0) {
+  //       console.log('got from postgres')
+  //       data[0].from = 'postgres'
+        
+  //       res.status(200).json(data[0]);
+  //       return;
+  //     }
+  //   }
+  // })
 });
 
 //queries cassandra db to get hostId by listingId
@@ -79,7 +95,7 @@ var incListingsCount = (listingId) => {
 // incListingsCount('ea6375d2-51b0-4bca-b6a7-a9a73a98a063');
 
 //increments hosts count by host id and keeps track of most recent booking
-var incHostsCount = (hostId, date) => {
+var incHostsCount = (hostId, date, startTime) => {
   dbPostgres.incrementHostsCount(hostId, date, (err, data) => {
     if (err) {
       console.log('error! ' + err);
@@ -96,8 +112,8 @@ var processBooking = (booking) => {
   var listingId = booking.listing_id;
   incListingsCount(listingId);
   getHostId(listingId, (hostId) => {
-    incHostsCount(hostId, date);
-    console.log('booking loaded')    
+    incHostsCount(hostId, date, startTime);
+    console.log('booking loaded')
   });
 };
 // var input = {
@@ -188,3 +204,10 @@ cron.schedule('30 2,14 * * *', newTopListings);
 
 
 module.exports.processBooking = processBooking;
+
+
+
+var sum = (a, b) => {
+  return a + b;
+}
+module.exports.sum = sum;
