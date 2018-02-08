@@ -22,6 +22,12 @@ create table listings_by_host (
   PRIMARY KEY (hostId, listingId)
 );
 
+create table bookings (
+  bookTime timestamp,
+  listingId uuid,
+  PRIMARY KEY (listingId, bookTime)
+);
+
 copy users from '/Users/kmenghini/AirbnbData/users1.txt' with delimiter=',';
 copy listings from '/Users/kmenghini/AirbnbData/listings1.txt' with delimiter=',';
 copy listings_by_host from '/Users/kmenghini/AirbnbData/listings1byhost.txt' with delimiter=',';

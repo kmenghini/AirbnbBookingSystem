@@ -10,7 +10,6 @@ const moment = require('moment');
 var dbCassandra = require('./db/cassandra/index.js');
 var dbPostgres = require('./db/postgres/index.js');
 var cron = require('node-cron');
-
 var sqs = require('./sqs.js');
 
 // Constants
@@ -82,6 +81,11 @@ var getHostId = (listingId, callback) => {
 }
 // getHostId('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('getHostId', data));
 
+
+
+//------------------------------------------------------------------------------------------------------------
+
+
 //increments listings count by listingId
 var incListingsCount = (listingId) => {
   dbPostgres.incrementListingsCount(listingId, (err, data) => {
@@ -106,21 +110,40 @@ var incHostsCount = (hostId, date, startTime) => {
 }
 // incHostsCount('316c0f95-44f8-475d-b165-03f528c8a127', '2018-03-24');
 
+
 //run this on each booking object received {book_time:  , listing_id: }
 var processBooking = (booking) => {
   var date = booking.book_time;
   var listingId = booking.listing_id;
   incListingsCount(listingId);
   getHostId(listingId, (hostId) => {
-    incHostsCount(hostId, date, startTime);
+    incHostsCount(hostId, date);
     console.log('booking loaded')
   });
 };
+
+//worker grabs from queue
+//attempt to add to bookings table in cassandra
+var receiveBookings = (booking) => {
+  //sqs.
+  dbCassandra.addBooking(booking.book_time, booking.listing_id, (data) => {
+    if (data['[applied]']) {
+      console.log('processing new booking', booking)
+      processBooking(booking);
+    }
+  })
+}
+
 // var input = {
 //   book_time: '2018-02-04',
 //   listing_id: '73eb50d7-3fc6-4d05-8cf7-fbaa63779e5b'
 // }
 // processBooking(input);
+// receiveBookings(input);
+
+
+
+//------------------------------------------------------------------------------------------------------------
 
 //get list of superhosts (>= 5 bookings)
 var getSuperhosts = (callback) => {
@@ -157,6 +180,9 @@ var newSuperhosts = () => {
 };
 //in a cron job to check for new superhosts twice a day
 cron.schedule('00 2,14 * * *', newSuperhosts);
+
+
+//------------------------------------------------------------------------------------------------------------
 
 
 //get top listings (top 5)
@@ -199,7 +225,6 @@ var newTopListings = () => {
 }
 //in cron job to get top listings twice a day
 cron.schedule('30 2,14 * * *', newTopListings);
-
 
 
 
