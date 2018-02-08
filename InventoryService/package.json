@@ -41,5 +41,9 @@
     "jest": "^22.1.4",
     "jest-cli": "^22.1.4",
     "regenerator-runtime": "^0.11.1"
+  },
+  "jest": {
+    "verbose": true,
+    "collectCoverage": true
   }
 }
