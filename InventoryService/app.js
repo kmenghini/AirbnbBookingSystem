@@ -5,12 +5,16 @@ require('newrelic');
 const bodyParser = require('body-parser');
 var cassandra = require('cassandra-driver');
 const express = require('express');
-// var models = require('express-cassandra');
 const moment = require('moment');
+var cron = require('node-cron');
+
+//file requirements
 var dbCassandra = require('./db/cassandra/index.js');
 var dbPostgres = require('./db/postgres/index.js');
-var cron = require('node-cron');
-var sqsConsumer = require('./sqs/sqsConsumer.js')
+var func = require('./helperFunctions.js');
+
+//uncomment this to start pulling from SQS
+// var sqsConsumer = require('./sqs/sqsConsumer.js');
 
 // Constants
 const PORT = 8080;
@@ -72,166 +76,12 @@ app.get('/inventory/:listingId', (req, res) => {
   // })
 });
 
-//queries cassandra db to get hostId by listingId
-var getHostId = (listingId, callback) => {
-  dbCassandra.getHostIdOfListing(listingId, (data) => {
-    var result = (data[0].hostid).toString();
-    callback(result);
-  });
-}
-// getHostId('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('getHostId', data));
 
-
-
-//------------------------------------------------------------------------------------------------------------
-
-
-//increments listings count by listingId
-var incListingsCount = (listingId) => {
-  dbPostgres.incrementListingsCount(listingId, (err, data) => {
-    if (err) {
-      console.log('error! ' + err);
-    } else {
-      console.log('listing insert successful!');
-    }
-  })
-}
-// incListingsCount('ea6375d2-51b0-4bca-b6a7-a9a73a98a063');
-
-//increments hosts count by host id and keeps track of most recent booking
-var incHostsCount = (hostId, date, startTime) => {
-  dbPostgres.incrementHostsCount(hostId, date, (err, data) => {
-    if (err) {
-      console.log('error! ' + err);
-    } else {
-      console.log('host insert successful!');
-    }
-  })
-}
-// incHostsCount('316c0f95-44f8-475d-b165-03f528c8a127', '2018-03-24');
-
-
-var processBooking = (booking) => {
-  var date = booking.book_time;
-  var listingId = booking.listing_id;
-  incListingsCount(listingId);
-  getHostId(listingId, (hostId) => {
-    incHostsCount(hostId, date);
-    console.log('booking loaded')
-  });
-};
-
-//book_time must have specific time to ms
-//run this on each booking object received from sqs-consumer {book_time:  , listing_id: }
-var receiveBookings = (booking) => {
-  dbCassandra.addBooking(booking.book_time, booking.listing_id, (data) => {
-    if (data['[applied]']) {
-      console.log('processing new booking', booking)
-      processBooking(booking);
-    }
-  })
-}
-
-// var input = {
-//   book_time: '2018-02-04',
-//   listing_id: '73eb50d7-3fc6-4d05-8cf7-fbaa63779e5b'
-// }
-// processBooking(input);
-// receiveBookings(input);
-
-
-
-
-
-// var input = JSON.parse('{"listing_id":"76d023e4-077a-4380-b88e-190cdca4669d","book_time":"2018-02-07T17:13:30-08:00"}');
-// receiveBookings(input);
-
-//------------------------------------------------------------------------------------------------------------
-
-//get list of superhosts (>= 5 bookings)
-var getSuperhosts = (callback) => {
-  dbPostgres.queryForSuperhosts((err, data) => {
-    if (err) {
-      console.log('superhost error! ' + err);
-    } else {
-      callback(data);
-    }
-  });
-}
-
-//updates superhosts in tables: pg.superhosts, cass.users, cass.listings
-var newSuperhosts = () => {
-  getSuperhosts((data) => {
-    data.forEach(superhost => {
-      var hostid = superhost.hostid;
-      var date = superhost.newestbookingdate;
-      dbPostgres.addSuperhostToTable(hostid, date, (err, data) => {
-        if (err) {
-          console.log('superhost error! ' + err);
-        } else {
-          if (data.rowCount) {
-            dbCassandra.getListingIdsOfHost(hostid, (listingIds) => {
-              dbCassandra.promoteHostToSuperhost(hostid, listingIds, (data) => {
-                console.log('updated superbool in cassandra for', data);
-              })
-            });
-          }
-        }
-      });
-    });
-  });
-};
 //in a cron job to check for new superhosts twice a day
-cron.schedule('00 2,14 * * *', newSuperhosts);
+cron.schedule('00 2,14 * * *', func.newSuperhosts);
 
-
-//------------------------------------------------------------------------------------------------------------
-
-
-//get top listings (top 5)
-var getTopListings = (callback) => {
-  dbPostgres.queryForTopListings((err, data) => {
-    if (err) {
-      console.log('top listings error' + err);
-    } else {
-      callback(data);
-    }
-  });
-}
-
-var newTopListings = () => {
-  dbPostgres.clearPopularListingsTable((err, data) => {
-    if (err) {
-      console.log('clear top listings error' + err);
-    } else {
-      getTopListings((topListings) => {
-        topListings.forEach(topListing => {
-          var listingId = topListing.listingid;
-          dbCassandra.getListingDetails(listingId, (data) => {
-            var listingId = data[0].id.toString();
-            var name = data[0].name;
-            var hostId = data[0].hostid.toString();
-            var superBool = data[0].superbool;
-            //move this table to redis later
-            dbPostgres.addPopularListing(listingId, name, hostId, superBool, (err, data) => {
-              if (err) {
-                console.log('add top listing error' + err);
-              } else {
-                console.log('popular listing added!');
-              }
-            })
-          });
-        })
-      })
-    }
-  });
-}
 //in cron job to get top listings twice a day
-cron.schedule('30 2,14 * * *', newTopListings);
-
-
-
-module.exports.receiveBookings = receiveBookings;
+cron.schedule('30 2,14 * * *', func.newTopListings);
 
 
 
