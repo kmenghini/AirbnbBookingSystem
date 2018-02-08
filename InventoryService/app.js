@@ -10,7 +10,6 @@ const moment = require('moment');
 var dbCassandra = require('./db/cassandra/index.js');
 var dbPostgres = require('./db/postgres/index.js');
 var cron = require('node-cron');
-var sqs = require('./sqs.js');
 
 // Constants
 const PORT = 8080;
@@ -40,9 +39,9 @@ var fileNum = 1; //1 to 20
 listingsByHostFile.generate(fileNum);
 */
 
-//uncomment to load bookings csv into postgres tables
-// var bookingsToPg = require('./db/loadBookingsToPostgres.js');
-// bookingsToPg.loadBookings(1);
+//uncomment to load bookings csv into bookings table and counter tables
+// var bookingsToCass = require('./db/loadBookingsToCassandra.js');
+// bookingsToCass.loadBookings(1);
 
 //to test timing of any function, wrap with this:
 // var startTime = moment().valueOf();
@@ -111,7 +110,6 @@ var incHostsCount = (hostId, date, startTime) => {
 // incHostsCount('316c0f95-44f8-475d-b165-03f528c8a127', '2018-03-24');
 
 
-//run this on each booking object received {book_time:  , listing_id: }
 var processBooking = (booking) => {
   var date = booking.book_time;
   var listingId = booking.listing_id;
@@ -122,10 +120,9 @@ var processBooking = (booking) => {
   });
 };
 
-//worker grabs from queue
-//attempt to add to bookings table in cassandra
+//book_time must have specific time to ms
+//run this on each booking object received from sqs-consumer {book_time:  , listing_id: }
 var receiveBookings = (booking) => {
-  //sqs.
   dbCassandra.addBooking(booking.book_time, booking.listing_id, (data) => {
     if (data['[applied]']) {
       console.log('processing new booking', booking)
@@ -142,6 +139,11 @@ var receiveBookings = (booking) => {
 // receiveBookings(input);
 
 
+
+
+
+// var input = JSON.parse('{"listing_id":"76d023e4-077a-4380-b88e-190cdca4669d","book_time":"2018-02-07T17:13:30-08:00"}');
+// receiveBookings(input);
 
 //------------------------------------------------------------------------------------------------------------
 
@@ -228,7 +230,7 @@ cron.schedule('30 2,14 * * *', newTopListings);
 
 
 
-module.exports.processBooking = processBooking;
+module.exports.receiveBookings = receiveBookings;
 
 
 
