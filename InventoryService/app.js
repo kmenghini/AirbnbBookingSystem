@@ -10,6 +10,7 @@ const moment = require('moment');
 var dbCassandra = require('./db/cassandra/index.js');
 var dbPostgres = require('./db/postgres/index.js');
 var cron = require('node-cron');
+var sqsConsumer = require('./sqs/sqsConsumer.js')
 
 // Constants
 const PORT = 8080;

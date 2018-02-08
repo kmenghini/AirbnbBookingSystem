@@ -52,7 +52,6 @@ module.exports = {
       }
     });
   }, 
-  //bookTime = string, listingId = string
   addBooking: (bookTime, listingId, callback) => {
     var date = new Date(bookTime);
     client.execute('INSERT INTO bookings (listingid, booktime) VALUES (?, ?) IF NOT EXISTS;', [listingId, date], (err, res) => {
