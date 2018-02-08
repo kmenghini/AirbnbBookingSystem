@@ -1,10 +1,5 @@
 var AWS = require('aws-sdk');
-var awsKey = require('./config/aws.config.js');
-
-// var config = new AWS.Config({
-//   accessKeyId: awsconfig.accessKeyId,
-//   secretAccessKey: awsconfig.secretAccessKey
-// });
+var awsKey = require('../config/aws.config.js');
 
 AWS.config.update({
   accessKeyId: awsKey.accessKeyId,
@@ -12,10 +7,8 @@ AWS.config.update({
   region: 'us-west-1'
 });
 
-//endpoint
-//sqs.us-west-2.amazonaws.com
 
-const QUEUE_URL = 'https://sqs.us-west-1.amazonaws.com/462015734403/fromBookings';
+//const QUEUE_URL = 'https://sqs.us-west-1.amazonaws.com/462015734403/fromBookings';
 
 
 var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
@@ -36,7 +29,6 @@ sqs.listQueues(params, function(err, data) {
   }
 });
 
-sqs.sendMessageBatch()
 
 //get messages from Bookings and add to queue
 //sqs.sendMessageBatch()
