@@ -57,9 +57,13 @@ listingsByHostFile.generate(fileNum);
 //queries cassandradb to get listing details by listingId
 app.get('/inventory/:listingId', (req, res) => {
   // var startTime = moment().valueOf();
-  dbCassandra.getListingDetails(req.params.listingId, (data) => {
+  dbCassandra.getListingDetails(req.params.listingId, (err, data) => {
     // console.log('got from cassandra')
-    res.status(200).json(data[0]);
+    if (data) {
+      res.status(200).json(data[0]);
+    } else {
+      res.status(404).send(err)
+    }
   });
   // dbPostgres.getPopularListingDetails(req.params.listingId, (err, data) => {
   //   if (err) {

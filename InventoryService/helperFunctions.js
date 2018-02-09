@@ -6,9 +6,13 @@ var dbPostgres = require('./db/postgres/index.js');
 
 //queries cassandra db to get hostId by listingId
 var getHostId = (listingId, callback) => {
-  dbCassandra.getHostIdOfListing(listingId, (data) => {
-    var result = (data[0].hostid).toString();
-    callback(result);
+  dbCassandra.getHostIdOfListing(listingId, (err, data) => {
+    if (err) {
+      // throw err;
+    } else {
+      var result = (data[0].hostid).toString();
+      callback(result);
+    }
   });
 }
 // getHostId('ea6375d2-51b0-4bca-b6a7-a9a73a98a053', data => console.log('getHostId', data));

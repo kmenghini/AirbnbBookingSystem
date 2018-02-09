@@ -7,7 +7,7 @@ beforeAll(() => {
 });
 
 test('expect getListingDetails to return the correct results in the correct format', (done) => {
-  function callback(data) {
+  function callback(err, data) {
     expect(JSON.parse(JSON.stringify(data[0]))).toEqual({
       id: 'c8e00877-6825-4ae0-83b7-5299ff0fcd3a',
       hostid: 'a4611423-ea29-42b1-bc21-28c31c85c158',
@@ -20,7 +20,7 @@ test('expect getListingDetails to return the correct results in the correct form
 });
 
 test('expect getListingDetails to return exactly 1 result', (done) => {
-  function callback(data) {
+  function callback(err, data) {
     expect(data.length).toBe(1);
     done();
   }
@@ -28,23 +28,23 @@ test('expect getListingDetails to return exactly 1 result', (done) => {
 });
 
 test('expect getListingDetails to return empty array if listing doesn\'t exist', done => {
-  function callback(data) {
+  function callback(err, data) {
     expect(data).toEqual([]);
     done();
   }
   db.getListingDetails('c8e00877-6825-4ae0-83b7-5299ff0fcd3b', callback);
 });
 
-// test('expect getListingDetails to err', done => {
-//   function callback(error) {
-//     expect(error).toBe('ERROR: ResponseError');
-//     done();
-//   }
-//   db.getListingDetails('0000', callback); 
-// });
+test('expect getListingDetails to handle errors', (done) => {
+  function callback(err, data) {
+    expect(err.name).toBe('ResponseError');
+    done();
+  }
+  db.getListingDetails('0000', callback);
+});
 
 test('expect getHostIdOfListing to return the correct results in the correct format', (done) => {
-  function callback(data) {
+  function callback(err, data) {
     expect(JSON.parse(JSON.stringify(data[0]))).toEqual({
       hostid: 'a4611423-ea29-42b1-bc21-28c31c85c158'
     })
@@ -54,7 +54,7 @@ test('expect getHostIdOfListing to return the correct results in the correct for
 });
 
 test('expect getHostIdOfListing to only return hostid', (done) => {
-  function callback(data) {
+  function callback(err, data) {
     expect(JSON.parse(JSON.stringify(data[0])).id).toBeUndefined;
     expect(JSON.parse(JSON.stringify(data[0])).name).toBeUndefined;
     expect(JSON.parse(JSON.stringify(data[0])).superbool).toBeUndefined;
@@ -64,11 +64,19 @@ test('expect getHostIdOfListing to only return hostid', (done) => {
 });
 
 test('expect getHostIdOfListing to return undefined if listing doesn\'t exist', done => {
-  function callback(data) {
+  function callback(err, data) {
     expect(data).toBeUndefined;
     done();
   }
   db.getHostIdOfListing('c8e00877-6825-4ae0-83b7-5299ff0fcd3b', callback);
+});
+
+test('expect getHostIdOfListing to handle errors', (done) => {
+  function callback(err, data) {
+    expect(err.name).toBe('ResponseError');
+    done();
+  }
+  db.getHostIdOfListing('0000', callback);
 });
 
 test('expect promoteHostToSuperhost to update users table', done => {
@@ -95,14 +103,6 @@ test('expect promoteHostToSuperhost to update listings table', done => {
   });
 });
 
-test('expect promoteHostToSuperhost error', done => {
-  function callback(data) {
-    expect(data).toBeUndefined;
-    done();
-  }
-  db.promoteHostToSuperhost('000', ['000'], callback);
-});
-
 test('expect promoteHostToSuperhost to update listings table when host has multiple listings', done => {
   function callback(err, res) {
     expect(JSON.parse(JSON.stringify(res.rows[0])).superbool).toEqual(true);
@@ -115,18 +115,26 @@ test('expect promoteHostToSuperhost to update listings table when host has multi
   });
 })
 
+test('expect promoteHostToSuperhost to handle errors', done => {
+  function callback(err, data) {
+    expect(err.name).toBe('ResponseError');
+    done();
+  }
+  db.promoteHostToSuperhost('000', ['000'], callback);
+});
+
 test('expect getListingIdsOfHost to return array of uuids', done => {
-  function callback(data) {
+  function callback(err, data) {
     expect(Array.isArray(data)).toBeTruthy;
     expect(JSON.parse(JSON.stringify(data[0])).length).toEqual(36);
     expect(data.length).toBe(3);    
     done();
   }
   db.getListingIdsOfHost('47a065e1-a52e-47b6-815f-72a1001556fa', callback)  
-})
+});
 
 test('expect getListingIdsOfHost to return all listings a host has', done => {
-  function callback(data) { 
+  function callback(err, data) { 
     const result = JSON.parse(JSON.stringify(data))   
     expect(result).toContain('56424df1-a4b4-4d8d-a166-8b300d9eed03');
     expect(result).toContain('d068c66b-1b0e-4d13-8d89-1c8aff63a624');
@@ -135,7 +143,15 @@ test('expect getListingIdsOfHost to return all listings a host has', done => {
     done();
   }
   db.getListingIdsOfHost('47a065e1-a52e-47b6-815f-72a1001556fa', callback)
-})
+});
+
+test('expect getListingIdsOfHost to handle errors', done => {
+  function callback(err, data) {
+    expect(err.name).toBe('ResponseError');
+    done();
+  }
+  db.getListingIdsOfHost('000', callback);
+});
 
 test('expect addBooking to add a new booking to the bookings table', done => {
   function callback(err, res) {
@@ -158,7 +174,7 @@ test('expect addBooking to not add a duplicate booking', done => {
   db.addBooking('2018-02-10', '56424df1-a4b4-4d8d-a166-8b300d9eed03', () => {
     db.client.execute('SELECT * FROM bookings WHERE listingid=56424df1-a4b4-4d8d-a166-8b300d9eed03', callback);
   });
-})
+});
 
 test('expect addBooking to add bookings with same date but different times', done => {
   function callback(err, res) {
@@ -168,6 +184,12 @@ test('expect addBooking to add bookings with same date but different times', don
   db.addBooking('2018-02-10 04:00:00.000000', '56424df1-a4b4-4d8d-a166-8b300d9eed03', () => {
     db.client.execute('SELECT * FROM bookings WHERE listingid=56424df1-a4b4-4d8d-a166-8b300d9eed03', callback);
   });
-})
+});
 
-
+test('expect addBooking to handle errors', done => {
+  function callback(err, data) {
+    expect(err.name).toBe('ResponseError');
+    done();
+  }
+  db.addBooking('2018-02-10 04:00:00.000000', '000', callback);
+});
