@@ -17,36 +17,23 @@ var getHostId = (listingId, callback) => {
 //------------------------------------------------------------------------------------------------------------
 
 
-//increments listings count by listingId
-var incListingsCount = (listingId) => {
+var processBooking = (bookTime, listingId) => {
+  getHostId(listingId, (hostId) => {
+    dbPostgres.incrementHostsCount(hostId, bookTime, (err, data) => {
+      if (err) {
+        console.log('error! ' + err);
+      } else {
+        console.log('host insert successful!');
+      }
+    })
+    console.log('booking loaded')
+  });
   dbPostgres.incrementListingsCount(listingId, (err, data) => {
     if (err) {
       console.log('error! ' + err);
     } else {
       console.log('listing insert successful!');
     }
-  })
-}
-// incListingsCount('ea6375d2-51b0-4bca-b6a7-a9a73a98a063');
-
-//increments hosts count by host id and keeps track of most recent booking
-var incHostsCount = (hostId, date, startTime) => {
-  dbPostgres.incrementHostsCount(hostId, date, (err, data) => {
-    if (err) {
-      console.log('error! ' + err);
-    } else {
-      console.log('host insert successful!');
-    }
-  })
-}
-// incHostsCount('316c0f95-44f8-475d-b165-03f528c8a127', '2018-03-24');
-
-
-var processBooking = (bookTime, listingId) => {
-  incListingsCount(listingId);
-  getHostId(listingId, (hostId) => {
-    incHostsCount(hostId, bookTime);
-    console.log('booking loaded')
   });
 };
 
@@ -63,9 +50,8 @@ var receiveBookings = (bookTime, listingId) => {
   })
 }
 
-//   var book_time = '2018-02-04',
-//   var listing_id =  '73eb50d7-3fc6-4d05-8cf7-fbaa63779e5b'
-
+// var book_time = '2018-02-04'
+// var listing_id =  '73eb50d7-3fc6-4d05-8cf7-fbaa63779e5b'
 // processBooking(book_time, listing_id);
 // receiveBookings(book_time, listing_id);
 
@@ -84,7 +70,7 @@ var getSuperhosts = (callback) => {
 }
 
 //updates superhosts in tables: pg.superhosts, cass.users, cass.listings
-var newSuperhosts = () => {
+var processNewSuperhosts = () => {
   getSuperhosts((data) => {
     data.forEach(superhost => {
       var hostid = superhost.hostid;
@@ -122,7 +108,7 @@ var getTopListings = (callback) => {
   });
 }
 
-var newTopListings = () => {
+var processTopListings = () => {
   dbPostgres.clearPopularListingsTable((err, data) => {
     if (err) {
       console.log('clear top listings error' + err);
@@ -154,13 +140,11 @@ var newTopListings = () => {
 
 module.exports = {
   getHostId,
-  incListingsCount,
-  incHostsCount,
   processBooking,
   receiveBookings,
   getSuperhosts,
-  newSuperhosts,
+  processNewSuperhosts,
   getTopListings,
-  newTopListings
+  processTopListings
 };
 

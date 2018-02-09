@@ -78,10 +78,10 @@ app.get('/inventory/:listingId', (req, res) => {
 
 
 //in a cron job to check for new superhosts twice a day
-cron.schedule('00 2,14 * * *', func.newSuperhosts);
+cron.schedule('00 2,14 * * *', func.processNewSuperhosts);
 
 //in cron job to get top listings twice a day
-cron.schedule('30 2,14 * * *', func.newTopListings);
+cron.schedule('30 2,14 * * *', func.processTopListings);
 
 
 
