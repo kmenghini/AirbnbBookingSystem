@@ -8,10 +8,10 @@ var dbPostgres = require('./db/postgres/index.js');
 var getHostId = (listingId, callback) => {
   dbCassandra.getHostIdOfListing(listingId, (err, data) => {
     if (err) {
-      // throw err;
+      callback(err, null);
     } else {
       var result = (data[0].hostid).toString();
-      callback(result);
+      callback(null, result);
     }
   });
 }
@@ -21,35 +21,40 @@ var getHostId = (listingId, callback) => {
 //------------------------------------------------------------------------------------------------------------
 
 
-var processBooking = (bookTime, listingId) => {
-  getHostId(listingId, (hostId) => {
-    dbPostgres.incrementHostsCount(hostId, bookTime, (err, data) => {
-      if (err) {
-        console.log('error! ' + err);
-      } else {
-        console.log('host insert successful!');
-      }
-    })
-    console.log('booking loaded')
+var processBooking = (bookTime, listingId, callback) => {
+  getHostId(listingId, (error, hostId) => {
+    if (error) {
+      callback(error);
+    } else {
+      dbPostgres.incrementHostsCount(hostId, bookTime, (err, data) => {
+        if (err) {
+          callback(err);
+        } else {
+          callback('host insert successful!');
+        }
+      })
+    }
   });
   dbPostgres.incrementListingsCount(listingId, (err, data) => {
     if (err) {
-      console.log('error! ' + err);
+      callback(err);
     } else {
-      console.log('listing insert successful!');
+      callback('listing insert successful!');
     }
   });
 };
 
 //book_time must have specific time to ms
 //run this on each booking object received from sqs-consumer (book_time, listing_id)
-var receiveBookings = (bookTime, listingId) => {
-  console.log('in helper function');
-  console.log(bookTime, listingId)
-  dbCassandra.addBooking(bookTime, listingId, (data) => {
+var receiveBookings = (bookTime, listingId, callback) => {
+  dbCassandra.addBooking(bookTime, listingId, (err, data) => {
     if (data['[applied]']) {
-      console.log('processing new booking')
-      processBooking(bookTime, listingId);
+      callback('processing new booking')
+      processBooking(bookTime, listingId, (data) => {
+        console.log(data);
+      });
+    } else {
+      callback('duplicate booking')
     }
   })
 }
