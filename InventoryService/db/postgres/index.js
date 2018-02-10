@@ -39,7 +39,7 @@ module.exports = {
     });
   },
   queryForSuperhosts: (callback) => {
-    var queryString = 'SELECT hostid, newestbookingdate FROM hosts_count WHERE count >= 5;';
+    var queryString = 'SELECT * FROM hosts_count WHERE count >= 5;';
     client.query(queryString, (err, res) => {
       if (err) {
         callback(err, null);
@@ -87,6 +87,7 @@ module.exports = {
         callback(null, res.rows);
       }
     });
-  } 
+  },
+  client 
 }
 
