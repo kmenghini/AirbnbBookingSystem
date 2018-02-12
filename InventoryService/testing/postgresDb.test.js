@@ -102,7 +102,7 @@ test('expect queryForSuperhosts to return array of all hostids with count at 5 o
     });
     done();
   }
-  db.client.query('INSERT INTO hosts_count (hostid, count) VALUES (\'4bae11e7-7131-44bf-a534-3aaa97f7f219\', 5);', () => {
+  db.client.query('INSERT INTO hosts_count (hostid, count, newestbookingdate) VALUES (\'4bae11e7-7131-44bf-a534-3aaa97f7f219\', 5, \'2018-01-01\');', () => {
     db.queryForSuperhosts(callback);
   });
 })
@@ -115,7 +115,7 @@ test('expect queryForSuperhosts array to not include hostid with count less than
     done();
   }
   db.queryForSuperhosts(callback);
-})
+});
 
 test('expect addSuperhostToTable to add new host to superhost table', done => {
   function callback(err, res) {
@@ -123,10 +123,10 @@ test('expect addSuperhostToTable to add new host to superhost table', done => {
     expect((res.rows[0].superdate).toString()).toBe('Mon Jan 01 2018 00:00:00 GMT-0800 (PST)')
     done();
   }
-  db.addSuperhostToTable('4bae11e7-7131-44bf-a534-3aaa97f7f219', '2018-01-01', () => {
+  db.addSuperhostToTable('4bae11e7-7131-44bf-a534-3aaa97f7f219', '2018-01-01 00:01:00.000000', () => {
     db.client.query('SELECT * FROM superhosts WHERE hostid=\'4bae11e7-7131-44bf-a534-3aaa97f7f219\';', callback);
-  })
-})
+  });
+});
 
 test('expect addSuperhostToTable to not overwrite date if host is already in table', done => {
   function callback(err, res) {
@@ -134,7 +134,7 @@ test('expect addSuperhostToTable to not overwrite date if host is already in tab
     expect((res.rows[0].superdate).toString()).toBe('Mon Jan 01 2018 00:00:00 GMT-0800 (PST)')
     done();
   }
-  db.addSuperhostToTable('4bae11e7-7131-44bf-a534-3aaa97f7f219', '2018-01-11', () => {
+  db.addSuperhostToTable('4bae11e7-7131-44bf-a534-3aaa97f7f219', '2018-01-11 00:01:00.000000', () => {
     db.client.query('SELECT * FROM superhosts WHERE hostid=\'4bae11e7-7131-44bf-a534-3aaa97f7f219\';', callback);
   })
 })

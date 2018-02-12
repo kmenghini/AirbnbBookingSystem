@@ -4,14 +4,17 @@ var cass = require('../db/cassandra/index.js')
 
 beforeAll(() => {
   cass.client.execute('INSERT INTO listings (id, hostid, name, superbool) VALUES (bd825fc0-da1f-4d6a-855d-a116d227fbe7, 03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c, \'test listing 000\', false);')
-  cass.client.execute('INSERT INTO listings (id, hostid, name, superbool) VALUES (0a9e2c83-8eb2-4d41-b9eb-0382cd6d623b, 03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c, \'test listing 000\', false);')
+  // cass.client.execute('INSERT INTO listings (id, hostid, name, superbool) VALUES (0a9e2c83-8eb2-4d41-b9eb-0382cd6d623b, 03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c, \'test listing 000\', false);')
   cass.client.execute('INSERT INTO users (id, hostbool, superbool) VALUES (03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c, true, false);')
   cass.client.execute('INSERT INTO listings_by_host (hostid, listingid) VALUES (03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c, bd825fc0-da1f-4d6a-855d-a116d227fbe7);')
-  cass.client.execute('INSERT INTO listings_by_host (hostid, listingid) VALUES (03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c, 0a9e2c83-8eb2-4d41-b9eb-0382cd6d623b);')
+  // cass.client.execute('INSERT INTO listings_by_host (hostid, listingid) VALUES (03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c, 0a9e2c83-8eb2-4d41-b9eb-0382cd6d623b);')
   pg.client.query('DELETE FROM hosts_count WHERE hostid=\'03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c\';');  
   pg.client.query('DELETE FROM listings_count WHERE listingid IN (\'bd825fc0-da1f-4d6a-855d-a116d227fbe7\',\'0a9e2c83-8eb2-4d41-b9eb-0382cd6d623b\');');
-  cass.client.execute('DELETE FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7 AND booktime=\'2018-02-06 00:00:00.000000\';');
-  cass.client.execute('DELETE FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7 AND booktime=\'2018-02-06 00:01:00.000000\';');
+  cass.client.execute('DELETE FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7 AND booktime=\'2018-02-06 00:00:00.000000\' IF EXISTS;');
+  cass.client.execute('DELETE FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7 AND booktime=\'2018-02-06 00:01:00.000000\' IF EXISTS;');
+  cass.client.execute('DELETE FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7 AND booktime=\'2018-02-07 00:01:00.000000\' IF EXISTS;');
+  cass.client.execute('DELETE FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7 AND booktime=\'2018-02-07 00:05:00.000000\' IF EXISTS;');
+  // pg.client.query('DELETE FROM superhosts WHERE hostid=\'03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c\';');  
 })
 
 test('expect getHostId to return correct results in correct format', (done) => {
@@ -60,64 +63,111 @@ test('expect processBooking to increment listings_count table', done => {
   })
 })
 
-// test('expect receiveBookings to add booking to bookings table in cassandra', done => {
-//   function callback(err, data) {
-//     expect(JSON.parse(JSON.stringify(data.rows[0].listingid))).toBe('bd825fc0-da1f-4d6a-855d-a116d227fbe7');
-//     expect(JSON.parse(JSON.stringify(data.rows[0].booktime))).toBe('2018-02-06T00:00:00.000Z');
-//     done();
-//   }
-//   func.receiveBookings('2018-02-06 00:00:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
-//     cass.client.execute('SELECT * FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7;', callback)
-//   })
-// });
+test('expect receiveBookings to add booking to bookings table in cassandra', done => {
+  function callback(err, data) {
+    expect(JSON.parse(JSON.stringify(data.rows[0].listingid))).toBe('bd825fc0-da1f-4d6a-855d-a116d227fbe7');
+    expect(JSON.parse(JSON.stringify(data.rows[0].booktime))).toBe('2018-02-06T08:00:00.000Z');
+    done();
+  }
+  func.receiveBookings('2018-02-06 00:00:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
+    cass.client.execute('SELECT * FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7;', callback)
+  })
+});
 
-// test('expect receiveBookings to not add duplicate bookings', done => {
-//   function callback(err, data) {
-//     expect(data.rows.length).toBe(1);
-//     done();
-//   }
-//   func.receiveBookings('2018-02-06 00:00:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
-//     cass.client.execute('SELECT * FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7 AND booktime=\'2018-02-06 00:00:00.000000\';', callback)
-//   })
-// })
+test('expect receiveBookings to not add duplicate bookings', done => {
+  function callback(err, data) {
+    expect(data.rows.length).toBe(1);
+    done();
+  }
+  func.receiveBookings('2018-02-06 00:00:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
+    cass.client.execute('SELECT * FROM bookings WHERE listingid=bd825fc0-da1f-4d6a-855d-a116d227fbe7 AND booktime=\'2018-02-06 00:00:00.000000\';', callback)
+  });
+});
 
-// test('expect receiveBookings to increment hosts_count if new booking', done => {
-//   function callback(err, data) {
-//     console.log(err, data)
-//     // expect().toBe();
-//     done();
-//   }
-//   func.receiveBookings('2018-02-06 00:01:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
-//     pg.client.query('SELECT * FROM hosts_count WHERE hostid=\'03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c\';', callback)
-//   })
-// })
+test('expect receiveBookings to increment hosts_count if new booking', done => {
+  function callback(err, data) {
+    expect(data.rows[0].count).toBe(3);
+    done();
+  }
+  func.receiveBookings('2018-02-06 00:01:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
+    pg.client.query('SELECT * FROM hosts_count WHERE hostid=\'03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c\';', callback)
+  });
+});
 
-// test('expect receiveBookings to increment listings_count if new booking', done => {
-//   function callback(err, data) {
-//     console.log(err, data)
-//     // expect().toBe();
-//     done();
-//   }
-//   func.receiveBookings('2018-02-06 00:01:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
-//     pg.client.query('SELECT * FROM listings_count WHERE listingid=\'bd825fc0-da1f-4d6a-855d-a116d227fbe7\';', callback)
-//   })
-// })
+test('expect receiveBookings to increment listings_count if new booking', done => {
+  function callback(err, data) {
+    expect(data.rows[0].count).toBe(3);
+    done();
+  }
+  func.receiveBookings('2018-02-06 00:01:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
+    pg.client.query('SELECT * FROM listings_count WHERE listingid=\'bd825fc0-da1f-4d6a-855d-a116d227fbe7\';', callback)
+  });
+});
 
-test('expect getSuperhosts to return array of all hostids with count at 5 or more')
+test('expect getSuperhosts to return array of all hostids with count at 5 or more', done => {
+  function callback(err, data) {
+    data.forEach(superhost => {
+      expect(superhost.count >= 5).toBeTruthy;
+    })
+    done();
+  }
+  func.receiveBookings('2018-02-07 00:01:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {
+    func.receiveBookings('2018-02-07 00:05:00.000000', 'bd825fc0-da1f-4d6a-855d-a116d227fbe7', () => {      
+      func.getSuperhosts(callback);
+    });
+  });
+});
 
-test('expect getSuperhosts array to not include hostid with count less than 5')
+test('expect processNewSuperhosts to add new superhost to postgres superhosts table', done => {
+  function callback(err, data) {
+    expect((data.rows[0].superdate).toString()).toBe('Wed Feb 07 2018 00:00:00 GMT-0800 (PST)')
+    done();
+  }
+  func.processNewSuperhosts(() => {
+    pg.client.query('SELECT * FROM superhosts WHERE hostid=\'03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c\';', callback);
+  });
+});
 
-test('expect processNewSuperhosts to add new superhost to postgres superhosts table')
+test('expect processNewSuperhosts to update boolean in cassandra users table', done => {
+  function callback(err, data) {
+    expect(data.rows[0].superbool).toBeTruthy;
+    done();
+  }
+  func.processNewSuperhosts(() => {
+    cass.client.execute('SELECT * FROM users WHERE id=03e1bba2-fbd0-4e33-a5d1-28c5fde7fd8c;', callback);
+  })
+})
 
-test('expect processNewSuperhosts to update boolean in cassandra users and listings tables')
+test('expect processNewSuperhosts to update boolean in cassandra listings table', done => {
+  function callback(err, data) {
+    expect(data.rows[0].superbool).toBeTruthy;
+    done();
+  }
+  func.processNewSuperhosts(() => {
+    cass.client.execute('SELECT * FROM listings WHERE id=bd825fc0-da1f-4d6a-855d-a116d227fbe7;', callback);
+  })
+})
 
-test('expect getTopListings to return array of top listingids')
+test('expect processNewSuperhosts to update boolean for both of a host\'s listings in listings table', done => {
+  function callback(err, data) {
+    expect(data.rows[0].superbool).toBeTruthy;
+    done();
+  }
+  func.processNewSuperhosts(() => {
+    cass.client.execute('SELECT * FROM listings WHERE id=0a9e2c83-8eb2-4d41-b9eb-0382cd6d623b;', callback);
+  });
+});
 
-test('expect getTopListings to return array with max length 5')
+test('expect processTopListings to add all details for top listings to postgres popular_listing_details table', done => {
+  function callback(err, data) {
+    expect(data.rows[0].listingid).toBe('bd825fc0-da1f-4d6a-855d-a116d227fbe7');
+    done();
+  }
+  func.processTopListings(() => {
+    pg.client.query('SELECT * FROM popular_listing_details;', callback)
+  });
+});
 
-test('expect processTopListings to add all details for top listings to postgres popular_listing_details table')
-
-test('expect old listings to not be in popular_listing_details table')
 
 
 
