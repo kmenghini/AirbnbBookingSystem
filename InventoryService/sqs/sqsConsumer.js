@@ -14,7 +14,13 @@ const app = Consumer.create({
   messageAttributeNames: ['book_time', 'listing_id'],
   handleMessage: (message, done) => {
     console.log('got message')
-    func.receiveBookings(message.MessageAttributes.book_time.StringValue, message.MessageAttributes.listing_id.StringValue);
+    func.receiveBookings(message.MessageAttributes.book_time.StringValue, message.MessageAttributes.listing_id.StringValue, (err, data) => {
+      if (err) {
+        console.log('error', err);
+      } else {
+        console.log('new message processed', data);
+      }
+    });
     done();
   },
   sqs: new AWS.SQS()

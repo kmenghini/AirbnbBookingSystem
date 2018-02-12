@@ -25,10 +25,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.get('/', (req, res) => {
-  res.send('Hello world\n');
-})
-
 app.listen(PORT, HOST);
 console.log(`Running on http://${HOST}:${PORT}`);
 
@@ -53,43 +49,36 @@ listingsByHostFile.generate(fileNum);
 // var endTime = moment().valueOf();
 // console.log('time to increment hosts count:', (endTime - startTime), 'ms');
 
-
 //queries cassandradb to get listing details by listingId
 app.get('/inventory/:listingId', (req, res) => {
-  // var startTime = moment().valueOf();
   dbCassandra.getListingDetails(req.params.listingId, (err, data) => {
-    // console.log('got from cassandra')
     if (data) {
       res.status(200).json(data[0]);
     } else {
       res.status(404).send(err)
     }
   });
-  // dbPostgres.getPopularListingDetails(req.params.listingId, (err, data) => {
-  //   if (err) {
-  //     console.log('error!', err);
-  //   } else {
-  //     if (data.length > 0) {
-  //       console.log('got from postgres')
-  //       data[0].from = 'postgres'
-        
-  //       res.status(200).json(data[0]);
-  //       return;
-  //     }
-  //   }
-  // })
 });
 
 
 //in a cron job to check for new superhosts twice a day
-cron.schedule('00 2,14 * * *', func.processNewSuperhosts);
+cron.schedule('00 2,14 * * *', func.processNewSuperhosts.bind(this, (err, data) => {
+  if (err) {
+    console.log('error processing superhosts', err);
+  } else {
+    console.log('got new superhosts', data)
+  }
+}));
 
 //in cron job to get top listings twice a day
-cron.schedule('30 2,14 * * *', func.processTopListings);
+cron.schedule('30 2,14 * * *', func.processTopListings.bind(this, (err, data) => {
+  if (err) {
+    console.log('error processing top listings', err);
+  } else {
+    console.log('got top listings', data)
+  }
+}));
 
 
+module.exports = app;
 
-var sum = (a, b) => {
-  return a + b;
-}
-module.exports.sum = sum;
