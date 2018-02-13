@@ -3,6 +3,7 @@ console.log('Initializing postgres');
 
 const client = new Client({
   connectionString: 'postgres://kmenghini@localhost:5432/airbnb_postgres'
+  // connectionString: process.env.DATABASE_URL || 'postgres://postgres@localhost:5432/airbnb_postgres'
 });
 
 client.connect();

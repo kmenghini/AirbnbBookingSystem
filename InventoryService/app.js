@@ -12,7 +12,6 @@ var cron = require('node-cron');
 var dbCassandra = require('./db/cassandra/index.js');
 var dbPostgres = require('./db/postgres/index.js');
 var func = require('./helperFunctions.js');
-
 //uncomment this to start pulling from SQS
 // var sqsConsumer = require('./sqs/sqsConsumer.js');
 

@@ -28,6 +28,3 @@ create table bookings (
   PRIMARY KEY (listingId, bookTime)
 );
 
-copy users from '/Users/kmenghini/AirbnbData/users1.txt' with delimiter=',';
-copy listings from '/Users/kmenghini/AirbnbData/listings1.txt' with delimiter=',';
-copy listings_by_host from '/Users/kmenghini/AirbnbData/listings1byhost.txt' with delimiter=',';
